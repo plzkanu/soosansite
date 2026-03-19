@@ -1,64 +1,66 @@
+import Link from "next/link";
 import Image from "next/image";
+import { getAllSites } from "@/lib/sites";
+import SiteCard from "@/components/SiteCard";
 
-export default function Home() {
+export const metadata = {
+  title: "수산그룹 업무 사이트",
+  description: "수산그룹 업무 사이트 - 개발된 사이트 목록을 클릭하여 접속하세요",
+};
+
+export default async function PortalPage() {
+  const sites = await getAllSites();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-emerald-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/20">
+      <header className="border-b border-zinc-200/80 bg-white/80 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/80">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <Link href="/" className="flex items-center gap-3">
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              src="/soosan-logo.png"
+              alt="SOOSAN"
+              width={200}
+              height={52}
+              priority
+              className="h-12 w-auto object-contain"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <span className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">
+              수산그룹 업무 사이트
+            </span>
+          </Link>
+          <Link
+            href="/admin"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           >
-            Documentation
-          </a>
+            관리자
+          </Link>
         </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-12">
+        <p className="mb-10 text-center text-zinc-600 dark:text-zinc-400">
+          아래 사이트를 클릭하면 해당 시스템으로 이동합니다
+        </p>
+
+        {sites.length === 0 ? (
+          <div className="rounded-2xl border-2 border-dashed border-zinc-200 bg-white/50 py-20 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
+            <p className="text-zinc-500 dark:text-zinc-400">
+              등록된 사이트가 없습니다.
+            </p>
+            <Link
+              href="/admin"
+              className="mt-4 inline-block text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+            >
+              관리자 페이지에서 사이트를 추가하세요 →
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {sites.map((site) => (
+              <SiteCard key={site.id} site={site} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

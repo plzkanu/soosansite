@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 사이트 포털
 
-## Getting Started
+개발된 사이트들을 한 페이지에서 관리하고 접속할 수 있는 포털입니다.
 
-First, run the development server:
+## 기능
+
+- **포털**: 등록된 사이트 카드 클릭 시 해당 사이트로 이동
+- **관리자**: 사이트 추가/수정/삭제, 이미지 업로드
+- **로그인**: 관리자 인증 (admin / admin!@#)
+- **비밀번호 변경**: 로그인 후 비밀번호 변경 가능
+
+## 로컬 실행
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 에서 확인
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Replit 배포
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. GitHub에 푸시
 
-## Learn More
+```bash
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/사용자명/저장소명.git
+git push -u origin main
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Replit에서 프로젝트 가져오기
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. [Replit](https://replit.com) 로그인
+2. **Create Repl** → **Import from GitHub**
+3. GitHub 저장소 URL 입력 후 Import
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. 환경 변수 설정 (Replit Secrets)
 
-## Deploy on Vercel
+Replit 좌측 **Tools** → **Secrets**에서 추가:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| 키 | 값 | 설명 |
+|---|---|---|
+| `AUTH_SECRET` | 랜덤 문자열 | JWT 서명용 (배포 시 필수) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. 배포
+
+Replit 상단 **Deploy** 버튼 클릭 → **Deploy to Replit**
+
+> ⚠️ **주의**: Replit 무료 플랜은 파일 저장소가 휘발성입니다. Repl이 sleep되면 `data/`(사이트 목록, 관리자 정보)와 `public/uploads/`(업로드 이미지)가 초기화될 수 있습니다. 영구 저장이 필요하면 Replit Database 사용을 고려하세요.
