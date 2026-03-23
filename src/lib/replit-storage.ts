@@ -57,7 +57,8 @@ async function getObjectStorage() {
   if (!objectStorageClient) {
     try {
       const { Client } = await import("@replit/object-storage");
-      const client = new Client();
+      const bucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID?.trim();
+      const client = bucketId ? new Client({ bucketId }) : new Client();
       objectStorageClient = client;
     } catch (e) {
       console.error("Replit Object Storage client init failed:", e);
