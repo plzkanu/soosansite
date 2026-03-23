@@ -40,8 +40,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect admin API routes
-  if (pathname.startsWith("/api/sites") || pathname.startsWith("/api/upload")) {
+  // 포털에서 카드 이미지로 쓰는 공개 경로 (startsWith("/api/upload")와 구분)
+  if (pathname.startsWith("/api/uploads")) {
+    return NextResponse.next();
+  }
+
+  // Protect admin API routes (/api/upload 만 — /api/uploads/* 는 위에서 통과)
+  if (
+    pathname.startsWith("/api/sites") ||
+    pathname === "/api/upload" ||
+    pathname === "/api/upload/"
+  ) {
     const auth = await isAuthenticated(request);
     if (!auth) {
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });

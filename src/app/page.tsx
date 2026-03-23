@@ -3,6 +3,9 @@ import Image from "next/image";
 import { getAllSites } from "@/lib/sites";
 import SiteCard from "@/components/SiteCard";
 
+// Replit DB / 로컬 파일에서 매 요청마다 목록을 읽도록 함 (빌드 시 빈 정적 HTML 방지)
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "수산그룹 업무 사이트",
   description: "수산그룹 업무 사이트 - 개발된 사이트 목록을 클릭하여 접속하세요",

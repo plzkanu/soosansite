@@ -1,8 +1,14 @@
 import { promises as fs } from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
+import {
+  isReplit,
+  replitDbGet,
+  replitDbSet,
+} from "./replit-storage";
 
 const ADMIN_FILE = path.join(process.cwd(), "data", "admin.json");
+const REPLIT_ADMIN_KEY = "admin";
 
 export interface AdminCredentials {
   username: string;
@@ -14,7 +20,7 @@ async function ensureDataDir() {
   await fs.mkdir(dir, { recursive: true });
 }
 
-export async function getAdmin(): Promise<AdminCredentials | null> {
+async function getAdminLocal(): Promise<AdminCredentials | null> {
   try {
     await ensureDataDir();
     const data = await fs.readFile(ADMIN_FILE, "utf-8");
@@ -22,6 +28,18 @@ export async function getAdmin(): Promise<AdminCredentials | null> {
   } catch {
     return null;
   }
+}
+
+async function getAdminReplit(): Promise<AdminCredentials | null> {
+  return replitDbGet<AdminCredentials>(REPLIT_ADMIN_KEY);
+}
+
+async function setAdminReplit(admin: AdminCredentials): Promise<void> {
+  await replitDbSet(REPLIT_ADMIN_KEY, admin);
+}
+
+export async function getAdmin(): Promise<AdminCredentials | null> {
+  return isReplit ? getAdminReplit() : getAdminLocal();
 }
 
 export async function initDefaultAdmin(): Promise<AdminCredentials> {
@@ -33,8 +51,13 @@ export async function initDefaultAdmin(): Promise<AdminCredentials> {
     username: "admin",
     passwordHash,
   };
-  await ensureDataDir();
-  await fs.writeFile(ADMIN_FILE, JSON.stringify(admin, null, 2), "utf-8");
+
+  if (isReplit) {
+    await setAdminReplit(admin);
+  } else {
+    await ensureDataDir();
+    await fs.writeFile(ADMIN_FILE, JSON.stringify(admin, null, 2), "utf-8");
+  }
   return admin;
 }
 
@@ -69,7 +92,12 @@ export async function updateAdminPassword(
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
-  admin.passwordHash = passwordHash;
-  await fs.writeFile(ADMIN_FILE, JSON.stringify(admin, null, 2), "utf-8");
+  admin = { ...admin, passwordHash };
+
+  if (isReplit) {
+    await setAdminReplit(admin);
+  } else {
+    await fs.writeFile(ADMIN_FILE, JSON.stringify(admin, null, 2), "utf-8");
+  }
   return { success: true };
 }

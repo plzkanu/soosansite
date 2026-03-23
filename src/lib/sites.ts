@@ -1,5 +1,11 @@
 import { promises as fs } from "fs";
 import path from "path";
+import {
+  isReplit,
+  replitDbGet,
+  replitDbSet,
+  resolvePublicUploadUrl,
+} from "./replit-storage";
 
 export interface Site {
   id: string;
@@ -12,13 +18,14 @@ export interface Site {
 }
 
 const DATA_FILE = path.join(process.cwd(), "data", "sites.json");
+const REPLIT_SITES_KEY = "sites";
 
 async function ensureDataDir() {
   const dir = path.dirname(DATA_FILE);
   await fs.mkdir(dir, { recursive: true });
 }
 
-async function readSites(): Promise<Site[]> {
+async function readSitesLocal(): Promise<Site[]> {
   try {
     await ensureDataDir();
     const data = await fs.readFile(DATA_FILE, "utf-8");
@@ -28,19 +35,47 @@ async function readSites(): Promise<Site[]> {
   }
 }
 
-async function writeSites(sites: Site[]) {
+async function writeSitesLocal(sites: Site[]) {
   await ensureDataDir();
   sites.sort((a, b) => a.order - b.order);
   await fs.writeFile(DATA_FILE, JSON.stringify(sites, null, 2), "utf-8");
 }
 
+async function readSitesReplit(): Promise<Site[]> {
+  const data = await replitDbGet<Site[]>(REPLIT_SITES_KEY);
+  return data ?? [];
+}
+
+async function writeSitesReplit(sites: Site[]) {
+  sites.sort((a, b) => a.order - b.order);
+  await replitDbSet(REPLIT_SITES_KEY, sites);
+}
+
+async function readSites(): Promise<Site[]> {
+  return isReplit ? readSitesReplit() : readSitesLocal();
+}
+
+async function writeSites(sites: Site[]) {
+  if (isReplit) {
+    await writeSitesReplit(sites);
+  } else {
+    await writeSitesLocal(sites);
+  }
+}
+
+function normalizeSite(site: Site): Site {
+  return { ...site, imageUrl: resolvePublicUploadUrl(site.imageUrl) };
+}
+
 export async function getAllSites(): Promise<Site[]> {
-  return readSites();
+  const sites = await readSites();
+  return sites.map(normalizeSite);
 }
 
 export async function getSiteById(id: string): Promise<Site | null> {
   const sites = await readSites();
-  return sites.find((s) => s.id === id) ?? null;
+  const site = sites.find((s) => s.id === id);
+  return site ? normalizeSite(site) : null;
 }
 
 export async function createSite(
@@ -56,7 +91,7 @@ export async function createSite(
   };
   sites.push(site);
   await writeSites(sites);
-  return site;
+  return normalizeSite(site);
 }
 
 export async function updateSite(
@@ -68,7 +103,7 @@ export async function updateSite(
   if (index === -1) return null;
   sites[index] = { ...sites[index], ...data };
   await writeSites(sites);
-  return sites[index];
+  return normalizeSite(sites[index]);
 }
 
 export async function deleteSite(id: string): Promise<boolean> {
