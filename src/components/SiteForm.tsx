@@ -35,8 +35,22 @@ export default function SiteForm({
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { error?: string; url?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { error?: string; url?: string };
+        } catch {
+          const preview = raw.trim().slice(0, 120);
+          throw new Error(
+            res.ok
+              ? "서버 응답 형식이 올바르지 않습니다."
+              : `업로드 실패 (${res.status}): ${preview || "알 수 없는 오류"}`
+          );
+        }
+      }
       if (!res.ok) throw new Error(data.error ?? "업로드 실패");
+      if (!data.url) throw new Error("업로드 응답에 이미지 URL이 없습니다.");
       setImageUrl(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "이미지 업로드 실패");

@@ -71,10 +71,15 @@ export async function replitUploadFromBytes(
   objectName: string,
   buffer: Buffer
 ): Promise<{ ok: boolean; error?: unknown }> {
-  const client = await getObjectStorage();
-  const result = await client.uploadFromBytes(objectName, buffer);
-  if (!result.ok) return { ok: false, error: result.error };
-  return { ok: true };
+  try {
+    const client = await getObjectStorage();
+    // getBucket() 실패 시 throw — Result로 통일해 API 라우트가 항상 JSON으로 응답할 수 있게 함
+    const result = await client.uploadFromBytes(objectName, buffer);
+    if (!result.ok) return { ok: false, error: result.error };
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error };
+  }
 }
 
 export async function replitDownloadAsBytes(
